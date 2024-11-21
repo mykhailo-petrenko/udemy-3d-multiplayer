@@ -1,9 +1,8 @@
 import './style.css'
-import typescriptLogo from './typescript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.ts'
 
 import { io } from 'socket.io-client';
+
+import { setupChat } from './chat';
 
 const socket = io();
 
@@ -11,20 +10,13 @@ console.log(socket);
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>Vite + TypeScript</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
-    </p>
+    Hello Dolly.
+
+    <section id="chat">
+    </section>
   </div>
 `
 
-setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+setupChat(socket, document.querySelector<HTMLElement>('#chat'));
+
+// setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)

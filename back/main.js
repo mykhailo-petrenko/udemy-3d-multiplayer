@@ -15,6 +15,21 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
   console.log('a user connected');
+
+  socket.on('message', (event) => {
+    // event.name
+    console.log('message', event.message);
+
+    io.emit('chat', {
+      time: new Date().toUTCString(),
+      message: event.message,
+      name: event.name,
+    });
+  });
+
+  socket.on('disconnect', () => {
+    console.log(' -- a user dosconnected.');
+  });
 });
 
 server.listen(3000, () => {
