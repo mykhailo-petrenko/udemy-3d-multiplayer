@@ -7,3 +7,10 @@ NodeJS + Express + Sockeet.IO
 
 ## Front 
 VanillaTS + Socket.IO-Client + vite
+
+## Links
+
+- https://free3d.com/
+- https://www.turbosquid.com/
+- https://www.cgtrader.com/
+- https://www.mixamo.com/
