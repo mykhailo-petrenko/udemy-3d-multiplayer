@@ -1,7 +1,7 @@
 import { memo, useCallback, useEffect, useState } from 'react';
 import './App.css';
 import { Wellcome } from './Wellcome.tsx';
-import { Chat } from './Chat.tsx';
+import { ChartWrapper } from './Chat.tsx';
 
 const App = memo(function App() {
   const [state, setState] = useState<string>();
@@ -44,7 +44,7 @@ const App = memo(function App() {
   }
 
   if (state === 'chat') {
-    content = <Chat name={name} />;
+    content = <ChartWrapper name={name} />;
     header = <><span>Hi, {name}!</span> <a onClick={logOut}>Log out..</a></>;
   }
 

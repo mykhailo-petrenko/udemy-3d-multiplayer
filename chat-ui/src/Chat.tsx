@@ -1,11 +1,12 @@
 import { ChangeEvent, FC, KeyboardEvent, useCallback, useEffect, useState } from 'react';
-import { io } from 'socket.io-client';
+import { io, Socket } from 'socket.io-client';
 import { JSX } from 'react/jsx-runtime';
 
-const socket = io();
+const socket = io({autoConnect: false});
 
 export interface ChatProps {
   name: string;
+  socket: Socket;
 }
 
 let history: JSX.Element[] = [];
@@ -16,7 +17,7 @@ const timeDigitFormat = new Intl.NumberFormat('en-US', {
 });
 
 
-export const Chat: FC<ChatProps> = function Chat({name}) {
+export const Chat: FC<ChatProps> = function Chat({name, socket}) {
   const [message, setMessage] = useState<string>('');
   const [messages, setMessages] = useState(null);
 
@@ -78,3 +79,28 @@ export const Chat: FC<ChatProps> = function Chat({name}) {
     </section>
   );
 }
+
+
+export const ChartWrapper: FC<{name: string}> = function ChatWrapper({name}) {
+  const [isConnected, setConnected] = useState(false);
+
+  useEffect(() => {
+    socket.connect();
+
+    socket.io.on("reconnect", () => {
+      setConnected(socket.connected);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [setConnected])
+
+  if (isConnected) {
+    return <section className="app-chat">
+      Connecting...
+    </section>
+  }
+
+  return <Chat name={name} socket={socket} />
+};

@@ -1,0 +1,20 @@
+services:
+  backend:
+    build:
+      context: ./back
+    container_name: backend
+    networks:
+      - backend
+    expose:
+      - "3000"
+  frontend:
+    build:
+      context: ./chat-ui
+    container_name: frontend
+    networks:
+      - backend
+    ports:
+      - "127.0.0.1:8888:80"
+networks:
+  backend:
+    driver: bridge
