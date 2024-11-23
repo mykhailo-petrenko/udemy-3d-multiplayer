@@ -2,11 +2,11 @@
 
 https://www.udemy.com/course/create-a-3d-multi-player-game-using-threejs-and-socketio/
 
-## Back 
+## Back (back)
 NodeJS + Express + Sockeet.IO
 
-## Front 
-VanillaTS + Socket.IO-Client + vite
+## Front (chat-ui) 
+React + Socket.IO-Client + vite
 
 ## Links
 
