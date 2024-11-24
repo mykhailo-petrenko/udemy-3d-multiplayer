@@ -1,4 +1,4 @@
-import { ChangeEvent, FC, KeyboardEvent, memo, useCallback, useEffect, useState } from 'react';
+import { ChangeEvent, createRef, FC, KeyboardEvent, memo, useCallback, useEffect, useState } from 'react';
 import { Socket } from 'socket.io-client';
 import { JSX } from 'react/jsx-runtime';
 import { Message } from './Message.tsx';
@@ -14,6 +14,8 @@ export const Chat: FC<ChatProps> = memo(function Chat({login, socket}) {
   const [message, setMessage] = useState<string>('');
   const [messages, setMessages] = useState(null);
   const [logins, setLogins] = useState(null);
+
+  const messagesRef = createRef<HTMLElement>();
 
   useEffect(() => {
     const chatRoomListener = ({id, time, login, message}) => {
@@ -66,19 +68,19 @@ export const Chat: FC<ChatProps> = memo(function Chat({login, socket}) {
     }
   }, [message, sendMessage]);
 
+  useEffect(() => {
+    messagesRef.current?.scroll({ top: messagesRef.current.scrollHeight, behavior: 'smooth' });
+  }, [messages, messagesRef]);
+
   const loginsList = logins?.map(({login}, i) => {
     return <li key={`${login}-${i}`}>{login}</li>
   });
 
-  console.log(loginsList)
-
   return (
     <section className="app-chat">
       <article>
-        <section>
-          <div>
+        <section ref={messagesRef}>
             {messages}
-          </div>
         </section>
         <footer>
           <input
