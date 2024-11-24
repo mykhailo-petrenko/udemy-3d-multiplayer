@@ -1,51 +1,67 @@
 import { memo, useCallback, useEffect, useState } from 'react';
+import { io } from 'socket.io-client';
 import './App.css';
 import { Wellcome } from './Wellcome.tsx';
-import { ChartWrapper } from './Chat.tsx';
+import { Chat } from './Chat.tsx';
+
+const socket = io({autoConnect: true});
 
 const App = memo(function App() {
   const [state, setState] = useState<string>();
-  const [name, setName] = useState<string>();
+  const [login, setLogin] = useState<string>();
 
-  useEffect(() => {
-    const login = localStorage.getItem("myLogin");
-    if (!login) {
-      setState('login');
-    } else {
-      setName(login);
-      setState('chat');
-    }
-  }, [setState, setName]);
-
-  const nextState = useCallback((state, name) => {
+  const nextState = useCallback((state, login) => {
     switch (state) {
       case 'login':
         localStorage.removeItem("myLogin");
         break;
       case 'chat':
-        localStorage.setItem("myLogin", name);
+        localStorage.setItem("myLogin", login);
         break;
     }
 
-    setName(name);
+    setLogin(login);
     setState(state);
-  }, [setState, setName]);
+  }, [setState, setLogin]);
+
+  useEffect(() => {
+    const login = localStorage.getItem("myLogin");
+    if (!login) {
+      nextState('login', null);
+    } else {
+      socket.emit('login', {
+        login
+      });
+
+      nextState('chat', login);
+    }
+  }, [nextState]);
+
+  const logInAttempt = useCallback((login: string) => {
+    socket.emit('login', {
+      login
+    });
+
+    nextState('chat', login);
+  }, [nextState]);
 
   const logOut = useCallback(() => {
-    nextState('login', null)
+    nextState('login', null);
+
+    socket.emit('logout', {});
   }, [nextState]);
 
   let content;
   let header;
 
   if (state === 'login') {
-    content = <Wellcome nextState={nextState} />;
+    content = <Wellcome onLogInAttempt={logInAttempt} />;
     header = <>Sing In</>
   }
 
   if (state === 'chat') {
-    content = <ChartWrapper name={name} />;
-    header = <><span>Hi, {name}!</span> <a onClick={logOut}>Log out..</a></>;
+    content = <Chat login={login} socket={socket} />;
+    header = <><span>Hi, {login}!</span> <a onClick={logOut}>Log out..</a></>;
   }
 
   return (

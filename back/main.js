@@ -1,7 +1,11 @@
-import express from 'express';
 import { createServer } from 'node:http';
+import { randomUUID } from 'node:crypto';
+
+import express from 'express';
 import { Server } from 'socket.io';
-import {History} from './history.js';
+
+import { History } from './history.js';
+import { WhoOnline } from './whoOnline.js';
 
 const app = express();
 const server = createServer(app);
@@ -10,28 +14,48 @@ const io = new Server(server);
 const SAVE_MAX_MESSAGES = 10;
 
 const history = new History(SAVE_MAX_MESSAGES);
+const whoOnline = new WhoOnline();
 
 app.get('/', (req, res) => {
   res.send('Hello world');
 });
 
+whoOnline.onChange(() => {
+  io.emit('online', {
+    logins: whoOnline.logins()
+  });
+});
+
 io.on('connection', (socket) => {
   console.log('a user connected');
-  let name = 'Anonymous';
+  let login = null;
 
-  for (const m of history.get()) {
-    socket.emit('chat', m);
-  }
+  socket.on('login', (event) => {
+    login = event.login;
+    console.log(`${login} logged IN!`);
+
+    whoOnline.update(socket.id, login);
+
+    socket.emit('online', {
+      logins: whoOnline.logins()
+    });
+    socket.emit('history', {
+      messages: history.get()
+    });
+  });
 
   socket.on('message', (event) => {
-    name = event.name;
+    login = event.login;
 
-    console.log('>', event.name, event.message);
+    whoOnline.update(socket.id, login);
+
+    console.log('>', event.login, event.message);
 
     const message = {
-      time: new Date().toUTCString(),
+      id: randomUUID(),
+      time: (new Date()).getTime(),
       message: event.message,
-      name: event.name,
+      login: login
     };
 
     io.emit('chat', message);
@@ -39,9 +63,17 @@ io.on('connection', (socket) => {
     history.add(message);
   });
 
-  socket.on('disconnect', () => {
-    console.log(`-- ${name} disconnected.`);
+  socket.on('logout', (event) => {
+    console.log(`-- ${login} log out.`);
+    login = null;
+    whoOnline.offline(socket.id);
   });
+
+  socket.on('disconnect', () => {
+    console.log(`-- ${login} disconnected.`);
+    whoOnline.offline(socket.id);
+  });
+
 });
 
 server.listen(3000, () => {

@@ -1,21 +1,21 @@
 import { useState, useCallback, memo, KeyboardEvent, ChangeEvent, FC } from 'react';
 
 export interface WellcomeProps {
-  nextState: (state: string, name: string) => void;
+  onLogInAttempt: (name: string) => void;
 }
 
-export const Wellcome: FC<WellcomeProps> = memo(function Wellcome({nextState}) {
-  const [name, setName] = useState<string>('');
+export const Wellcome: FC<WellcomeProps> = memo(function Wellcome({onLogInAttempt}) {
+  const [login, setLogin] = useState<string>('');
 
   const keyChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    setName(event.target.value);
-  }, [setName]);
+    setLogin(event.target.value);
+  }, [setLogin]);
 
   const keyDown = useCallback((event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter' && name.length > 0) {
-      nextState('chat', name);
+    if (event.key === 'Enter' && login.length > 0) {
+      onLogInAttempt(login);
     }
-  }, [name, nextState]);
+  }, [login, onLogInAttempt]);
 
   return (
     <section className="wellcome-section">
@@ -23,7 +23,7 @@ export const Wellcome: FC<WellcomeProps> = memo(function Wellcome({nextState}) {
       <input
         type="text"
         id="myLogin"
-        value={name}
+        value={login}
         onChange={keyChange}
         onKeyDown={keyDown}
       />

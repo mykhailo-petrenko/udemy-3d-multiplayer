@@ -1,57 +1,60 @@
-import { ChangeEvent, FC, KeyboardEvent, useCallback, useEffect, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { ChangeEvent, FC, KeyboardEvent, memo, useCallback, useEffect, useState } from 'react';
+import { Socket } from 'socket.io-client';
 import { JSX } from 'react/jsx-runtime';
-
-const socket = io({autoConnect: false});
+import { Message } from './Message.tsx';
 
 export interface ChatProps {
-  name: string;
+  login: string;
   socket: Socket;
 }
 
 let history: JSX.Element[] = [];
 
-const timeDigitFormat = new Intl.NumberFormat('en-US', {
-  minimumIntegerDigits: 2,
-  minimumFractionDigits: 0
-});
-
-
-export const Chat: FC<ChatProps> = function Chat({name, socket}) {
+export const Chat: FC<ChatProps> = memo(function Chat({login, socket}) {
   const [message, setMessage] = useState<string>('');
   const [messages, setMessages] = useState(null);
+  const [logins, setLogins] = useState(null);
 
   useEffect(() => {
-    const listener = ({time, name, message}) => {
-      const date = new Date(time);
-
-
-      const row = <pre
-        key={history.length.toString(10)}
-      >{timeDigitFormat.format(date.getHours())}:{timeDigitFormat.format(date.getMinutes())} [{name}]: {message}</pre>;
-
+    const chatRoomListener = ({id, time, login, message}) => {
       history = [
         ...history,
-        row,
+        <Message id={id} time={time} login={login} message={message} key={id} />,
       ];
 
       setMessages(history);
     };
 
-    socket.on('chat', listener);
+    const onlineListener = ({logins}) => {
+      setLogins(logins);
+    };
+
+    const historyListener = ({messages: historyMessages}) => {
+      setMessages([]);
+
+      history = historyMessages.map(({id, time, login, message}) => <Message id={id} time={time} login={login} message={message} key={id} />);
+
+      setMessages(history);
+    };
+
+    socket.on('online', onlineListener);
+    socket.on('history', historyListener);
+    socket.on('chat', chatRoomListener);
 
     return () => {
-      socket.off('chat', listener);
+      socket.off('chat', chatRoomListener);
+      socket.off('history', historyListener);
+      socket.off('online', onlineListener);
     };
-  }, [setMessages]);
+  }, [setMessages, setLogins]);
 
   const sendMessage = useCallback((message) => {
     socket.emit('message', {
       message: message,
-      name: name,
+      login: login,
     });
     setMessage('');
-  }, [name, setMessage]);
+  }, [login, setMessage]);
 
   const onChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     setMessage(event.target.value);
@@ -63,44 +66,32 @@ export const Chat: FC<ChatProps> = function Chat({name, socket}) {
     }
   }, [message, sendMessage]);
 
+  const loginsList = logins?.map(({login}, i) => {
+    return <li key={`${login}-${i}`}>{login}</li>
+  });
+
+  console.log(loginsList)
+
   return (
     <section className="app-chat">
-      <section>
-        {messages}
-      </section>
-      <footer>
-        <input
-          type="text"
-          value={message}
-          onChange={onChange}
-          onKeyDown={keyDown}
-        />
-      </footer>
+      <article>
+        <section>
+          <div>
+            {messages}
+          </div>
+        </section>
+        <footer>
+          <input
+            type="text"
+            value={message}
+            onChange={onChange}
+            onKeyDown={keyDown}
+          />
+        </footer>
+      </article>
+      <aside>
+        <ul>{loginsList}</ul>
+      </aside>
     </section>
   );
-}
-
-
-export const ChartWrapper: FC<{name: string}> = function ChatWrapper({name}) {
-  const [isConnected, setConnected] = useState(false);
-
-  useEffect(() => {
-    socket.connect();
-
-    socket.io.on("reconnect", () => {
-      setConnected(socket.connected);
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, [setConnected])
-
-  if (isConnected) {
-    return <section className="app-chat">
-      Connecting...
-    </section>
-  }
-
-  return <Chat name={name} socket={socket} />
-};
+});
