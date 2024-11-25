@@ -2,10 +2,25 @@
 
 https://www.udemy.com/course/create-a-3d-multi-player-game-using-threejs-and-socketio/
 
-## Back (back)
+## Chat implementation (Section 2 and Section 3)
+Working dir: `chat/'
+
+Build and start in docker
+```shell
+cd chat/
+docker compose build
+docker compose up -d
+```
+
+Open browser on http://localhost:8888/
+
+The goal was to explore the Socket.io (or similar) tool capabilities 
+before focusing on online multiplayer game designing and developing.
+
+### Back (chat/back/)
 NodeJS + Express + Sockeet.IO
 
-## Front (chat-ui) 
+### Front (chat/chat-ui/) 
 React + Socket.IO-Client + vite
 
 ## Links
