@@ -5,7 +5,7 @@ WORKDIR /usr/src/app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-COPY ./whoOnline.js.js ./
+COPY ./whoOnline.js ./
 COPY ./history.js ./
 COPY ./main.js ./
 
